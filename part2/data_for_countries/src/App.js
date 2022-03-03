@@ -63,7 +63,7 @@ const Countryname = (props) => {
           {props.countryname.map((country => (
             <li key={country.name.common}>
               {country.name.common} {" "}
-              <button onClick={console.log("test")}>show</button>
+              <button onClick={() => props.setFilterName(country.name.common)}>show</button>
             </li>
           )))
           } 
@@ -98,7 +98,7 @@ const App = () => {
   return (
     <div>
       <Filter filterName={filterName} handleFilterNameChange={handleFilterNameChange} />
-      <Countryname countryname={filterCountries}/>
+      <Countryname countryname={filterCountries} setFilterName={setFilterName}/>
     </div>
   )
 }

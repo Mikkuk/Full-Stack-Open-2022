@@ -6,7 +6,7 @@ const Persons = (props) => {
   return (
     <ul>
       {props.persons.map((person => (
-        <li key={person.name}>
+        <li key={person.id}>
           {person.name} {person.number} 
           <button onClick={() => props.deleteperson(person)}>delete</button>
         </li>
@@ -111,41 +111,49 @@ const App = () => {
       name: newName,
       number: newNumber,
     }
+    setNewNumber('')
+    setNewName('')
 
-    if (persons.find((person => person.name === newName))) {
+    const existingPerson = persons.find(person => person.name === personObject.name)
+    if (existingPerson) {
       if (window.confirm(
-        `${newName} is already added to phonebook, replace the old number with a new one?`
-        )
-        ){
-            const personid = persons.find((person) => person.name === newName).id
+        `${existingPerson.name} is already added to phonebook, replace the old number with a new one?`
+        )){
             personService
-            .update(personid, personObject)
+            .update(existingPerson.id, {...existingPerson, number: newNumber})
             .then((returnedPerson) => {
-              setPersons(persons.map(person => person.id !== personid ? person : returnedPerson))
+              setPersons(persons.map(person => person.id === existingPerson.id ? returnedPerson : person))
+              setConfirmationMessage(`Changed ${newName}'s number`)
+              setTimeout(() => {
+                setConfirmationMessage(null)
+              },4000)
             })
             .catch(error => {
               setErrorMessage(`Information of ${newName} has already been removed from server`)
               setTimeout(() => {
               setErrorMessage(null)
               },4000)
+              
             })
-          }
-          setNewNumber('')
-          setNewName('')
-          setConfirmationMessage(`Changed ${newName}'s number`)
-          setTimeout(() => {
-            setConfirmationMessage(null)
-          },4000)
+          return
+        }
     }
     else {
       personService
       .create(personObject)
         .then(returnedName =>{
         setPersons(persons.concat(returnedName))
-        setNewName('')
         setConfirmationMessage(`Added ${newName}`)
         setTimeout(() => {
           setConfirmationMessage(null)
+        },4000)
+      })
+      .catch(error => {
+        console.log(error.response.data)
+        const errormessage = JSON.stringify(error.response.data)
+        setErrorMessage(errormessage)
+        setTimeout(() => {
+        setErrorMessage(null)
         },4000)
       })
     }
@@ -155,17 +163,17 @@ const App = () => {
     console.log('delete effect')
     if (window.confirm(`Delete ${person.name} ?`)){
       personService.deletePerson(person.id)
-      .then(() => {
+      .then(()=>{
         personService.getAll()
-        .then((response) => {
+        .then(response => {
           setPersons(response)
-          setConfirmationMessage(`Deleted ${person.name}`)
-          setTimeout(() => {
-            setConfirmationMessage(null)
-          },4000)
-        })
+          })
       })
-    }
+      setConfirmationMessage(`Deleted ${person.name}`)
+      setTimeout(() => {
+        setConfirmationMessage(null)
+        },4000)
+      }
   }
 
   const handleNameChange = (event) => {
