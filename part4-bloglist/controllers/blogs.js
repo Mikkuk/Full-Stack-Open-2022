@@ -10,14 +10,35 @@ blogsRouter.get('/', async (request, response) => {
 
     response.json(blogs)
   })
-  
+
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    return authorization.substring(7)
+  }
+  return null
+}
+
 blogsRouter.post('/', async (request, response) => {
-  if (!request.user) {
+  const body = request.body
+  const token = getTokenFrom(request)
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!token || !decodedToken.id) {
     return response.status(401).json({error: 'token missing or invalid'})
   }
+  const user = await User.findById(decodedToken.id)
 
-  const user = request.user
-  const blog = new Blog({ ...request.body, user: user.id})
+  if (body.likes === undefined){
+    body.likes = 0
+  }
+
+  const blog = new Blog({
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes,
+    user: user._id
+  })
 
   const savedBlog = await blog.save()
   user.blogs = user.blogs.concat(savedBlog._id)
@@ -27,17 +48,6 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  const blogToDelete = await Blog.findById(request.params.id)
-  if (!blogToDelete) {
-    return response.status(204).end()
-  }
-
-  if (blogToDelete.user && blogToDelete.user.toString() !== request.user.id) {
-    return response.status(401).json({
-      error: 'only creator can delete the blog'
-    })
-  }
-  
   await Blog.findByIdAndRemove(request.params.id)
   response.status(204).end()
 })
@@ -59,4 +69,4 @@ blogsRouter.put('/:id', (request, response, next) => {
   .catch(error => next(error))
 })
 
-module.exports = blogsRouter
+module.exports = blogsRouter 
