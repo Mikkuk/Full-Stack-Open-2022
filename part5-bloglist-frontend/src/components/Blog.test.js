@@ -6,25 +6,23 @@ import Blog from './Blog'
 
 describe('Blog tests', () => {
     let container
-    const mockHandler = jest.fn()
+    let onLike = jest.fn()
 
     beforeEach(() => {
         const blog = {
             title: 'test-title',
             author: 'test-author',
             url: 'test-url',
-            likes: 2
+            likes: 2,
         }
-        container = render(<Blog blog={blog} like={mockHandler}/>)
+        container = render(<Blog blog={blog} like={onLike} />)
     })
-
-    afterEach(() => {
-        jest.clearAllMocks()
-    })
-
 
     test('renders title and author', () => {
-        expect(container.container).toHaveTextContent('test-title', 'test-author')
+        expect(container.container).toHaveTextContent(
+            'test-title',
+            'test-author'
+        )
     })
 
     test('url and likes are displayed after clicking the view button', () => {
@@ -37,14 +35,13 @@ describe('Blog tests', () => {
     })
 
     test('Event handler is called twice when like button is clicked twice', () => {
-
         const viewButton = screen.getByText('view')
-        const likeButton = screen.getByText('like')
-
         userEvent.click(viewButton)
+
+        const likeButton = screen.getByText('like')
         userEvent.click(likeButton)
         userEvent.click(likeButton)
 
-        expect(mockHandler.mock.calls.length).toBe(2)
+        expect(onLike.mock.calls).toHaveLength(2)
     })
 })

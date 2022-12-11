@@ -4,17 +4,27 @@ import '@testing-library/jest-dom/extend-expect'
 import BlogForm from './BlogForm'
 import userEvent from '@testing-library/user-event'
 
-test('<BlogForm /> updates parent state and calls onSubmit', async () => {
-    const addBlog = jest.fn()
+it('when blog is created, callback has correct data', () => {
+    const onCreate = jest.fn()
+    render(<BlogForm onCreate={onCreate} />)
 
-    const container = render(<BlogForm addBlog={addBlog} />)
+    const blogToCreate = {
+        author: 'tester',
+        title: 'Testblog',
+        url: 'testurl',
+    }
 
-    const input = container.container.querySelector('new blog')
-    const sendButton = screen.getByText('create')
+    const authorInput = screen.getByPlaceholderText('')
+    userEvent.type(authorInput, blogToCreate.author)
 
-    userEvent.type(input, 'testing a form...')
-    userEvent.click(sendButton)
+    const titleInput = screen.getByPlaceholderText('')
+    userEvent.type(titleInput, blogToCreate.title)
 
-    expect(addBlog.mock.calls).toHaveLength(1)
-    expect(addBlog.mock.calls[0][0].content).toBe('testing a form...')
+    const urlInput = screen.getByPlaceholderText('')
+    userEvent.type(urlInput, blogToCreate.url)
+
+    const createButton = screen.getByText('new blog')
+    userEvent.click(createButton)
+
+    expect(onCreate.mock.calls[0][0]).toEqual(blogToCreate)
 })

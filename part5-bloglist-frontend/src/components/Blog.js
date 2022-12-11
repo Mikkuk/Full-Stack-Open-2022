@@ -8,19 +8,18 @@ const Blog = ({ blog, addLike, removeItem, username }) => {
         paddingLeft: 2,
         border: 'solid',
         borderWidth: 1,
-        marginBottom: 5
+        marginBottom: 5,
     }
 
     let showWhenLogged = { display: blog.user === username ? 'none' : '' }
 
     const like = () => {
-        addLike(blog.id,
-            {
-                'title': blog.title,
-                'author': blog.author,
-                'url': blog.url,
-                'likes': blog.likes + 1
-            })
+        addLike(blog.id, {
+            title: blog.title,
+            author: blog.author,
+            url: blog.url,
+            likes: (blog.likes || 0) + 1,
+        })
     }
 
     const removeBlog = async () => {
@@ -30,34 +29,40 @@ const Blog = ({ blog, addLike, removeItem, username }) => {
     }
 
     return (
-        <div id='blog' style={blogStyle}>
+        <div id="blog" style={blogStyle}>
             {blog.title} {blog.author}
-            <Togglable id='view' buttonLabel="view">
+            <Togglable id="view" buttonLabel="view">
                 <div>
                     {blog.url}
-                    <br/>
+                    <br />
                     likes: {blog.likes}
-                    <button id='like-button' onClick={like}>like</button>
+                    <button id="like-button" onClick={like}>
+                        like
+                    </button>
                     <div style={showWhenLogged}>
-                        <button id='remove-button' onClick={() => removeBlog(blog.id, blog.title)}>
-                        delete blog
+                        <button
+                            id="remove-button"
+                            onClick={() => removeBlog(blog.id, blog.title)}
+                        >
+                            delete blog
                         </button>
                     </div>
                 </div>
             </Togglable>
         </div>
-    )}
+    )
+}
 
 Blog.displayName = 'Blog'
 
 Blog.propTypes = {
-    buttonLabel: PropTypes.string.isRequired
+    buttonLabel: PropTypes.string.isRequired,
 }
 
 Blog.propTypes = {
     blog: PropTypes.object.isRequired,
     addLike: PropTypes.func.isRequired,
-    removeItem: PropTypes.func.isRequired
+    removeItem: PropTypes.func.isRequired,
 }
 
 export default Blog
