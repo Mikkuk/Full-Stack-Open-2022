@@ -1,33 +1,26 @@
-import { Link } from 'react-router-dom'
-import { Table } from 'react-bootstrap'
+import { useSelector } from 'react-redux'
+import { useParams } from 'react-router-dom'
 
-const User = ({ users }) => {
+const User = () => {
+    const { id } = useParams()
+
+    const user = useSelector((state) => state.users.find((u) => u.id === id))
+
+    if (!user) {
+        return null
+    }
+
     return (
         <div>
-            <h2>Users</h2>
-            <Table striped>
-                <thead>
-                    <tr>
-                        <th>
-                        </th>
-                        <th>
-                            blogs created
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map((user) => (
-                        <tr key={user.id}>
-                            <td>
-                                <Link to={`/users/${user.id}`} key={user.id}>
-                                    {user.name}
-                                </Link>{' '}
-                            </td>
-                            <td>{user.blogs.length}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
+            <h2>{user.name}</h2>
+
+            <h3>added blogs</h3>
+
+            <ul>
+                {user.blogs.map((b) => (
+                    <li key={b.id}>{b.title}</li>
+                ))}
+            </ul>
         </div>
     )
 }

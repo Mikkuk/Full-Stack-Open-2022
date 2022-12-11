@@ -1,68 +1,88 @@
-import Togglable from './Togglable'
+import { useDispatch, useSelector } from 'react-redux'
+import { removeBlog, reactToBlog } from '../reducers/blogs'
+import { useParams, useNavigate } from 'react-router-dom'
 
-import PropTypes from 'prop-types'
+import { useField } from '../hooks'
 
-const Blog = ({ blog, addLike, removeItem, username }) => {
-    const blogStyle = {
-        paddingTop: 10,
-        paddingLeft: 2,
-        border: 'solid',
-        borderWidth: 1,
-        marginBottom: 5,
+import { Button } from '.'
+
+const Blog = () => {
+    const { id } = useParams()
+    const blog = useSelector((state) => state.blogs.find((u) => u.id === id))
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const comment = useField('text')
+
+    const user = useSelector((state) => state.user)
+
+    if (!blog) {
+        return null
     }
 
-    let showWhenLogged = { display: blog.user === username ? 'none' : '' }
+    const own = user && blog.user && user.username === blog.user.username
 
-    const like = () => {
-        addLike(blog.id, {
-            title: blog.title,
-            author: blog.author,
-            url: blog.url,
-            likes: (blog.likes || 0) + 1,
-        })
-    }
+    const addedBy = blog.user && blog.user.name ? blog.user.name : 'anonymous'
 
-    const removeBlog = async () => {
-        if (window.confirm(`Do you want to remove blog "${blog.title}"?`)) {
-            removeItem(blog.id)
+    const onRemoveBlog = () => {
+        const ok = window.confirm(`remove '${blog.title}' by ${blog.author}?`)
+
+        if (!ok) {
+            return
         }
+
+        dispatch(removeBlog(blog.id))
+        navigate('/')
+    }
+
+    const onLike = async () => {
+        const liked = {
+            ...blog,
+            likes: (blog.likes || 0) + 1,
+            user: blog.user.id,
+        }
+        dispatch(reactToBlog(liked, 'liked'))
+    }
+
+    const onAddComment = () => {
+        console.log(comment.fields.value)
+        const commented = {
+            ...blog,
+            comments: blog.comments.concat(comment.fields.value),
+            user: blog.user.id,
+        }
+        dispatch(reactToBlog(commented, 'commented'))
+        comment.reset()
     }
 
     return (
-        <div id="blog" style={blogStyle}>
-            {blog.title} {blog.author}
-            <Togglable id="view" buttonLabel="view">
-                <div>
-                    {blog.url}
-                    <br />
-                    likes: {blog.likes}
-                    <button id="like-button" onClick={like}>
-                        like
-                    </button>
-                    <div style={showWhenLogged}>
-                        <button
-                            id="remove-button"
-                            onClick={() => removeBlog(blog.id, blog.title)}
-                        >
-                            delete blog
-                        </button>
-                    </div>
-                </div>
-            </Togglable>
+        <div>
+            <h2>
+                {blog.title} {blog.author}
+            </h2>
+            <div>
+                <a href={blog.url}>{blog.url}</a>
+            </div>
+            <div>
+                {blog.likes} likes <Button onClick={onLike}>like</Button>
+            </div>
+            <div>added by {addedBy}</div>
+            {own && <Button onClick={onRemoveBlog}>remove</Button>}
+
+            <h3>comments</h3>
+
+            <div>
+                <input {...comment.fields} />{' '}
+                <Button onClick={onAddComment}> add comment</Button>
+            </div>
+
+            <ul>
+                {blog.comments.map((c, i) => (
+                    <li key={i}>{c}</li>
+                ))}
+            </ul>
         </div>
     )
-}
-
-Blog.displayName = 'Blog'
-
-Blog.propTypes = {
-    buttonLabel: PropTypes.string.isRequired,
-}
-
-Blog.propTypes = {
-    blog: PropTypes.object.isRequired,
-    addLike: PropTypes.func.isRequired,
-    removeItem: PropTypes.func.isRequired,
 }
 
 export default Blog
